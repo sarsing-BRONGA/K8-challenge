@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kn8s-shield
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kn8s-shield
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  minReadySeconds: 5 
+  template:
+    metadata:
+      labels:
+        app: kn8s-shield
+    spec:
+      nodeSelector:
+        "beta.kubernetes.io/os": linux
+      containers:
+      - name: kn8s-shield
+        image: romender/kn8s-shield:v1
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 250m
+          limits:
+            cpu: 500m
+        env:
+        - name: REDIS
+          value: "azure-vote-bac"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kn8s-shield
+spec:
+  ports:
+  - port: 8080
+  selector:
+    app: kn8s-shield
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kn8s-shield
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8080
+  selector:
+    app: kn8s-shield
